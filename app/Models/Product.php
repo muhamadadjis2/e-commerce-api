@@ -11,7 +11,12 @@ class Product extends Model
 
     protected $fillable = [
         'name',
-        'price'
+        'price',
+        'transaction_id'
     ];
 
+    public function transaction()
+    {
+        return $this->belongsTo(Transaction::class);
+    }
 }

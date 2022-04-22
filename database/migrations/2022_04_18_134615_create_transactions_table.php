@@ -14,12 +14,14 @@ class CreateTransactionsTable extends Migration
     public function up()
     {
         Schema::create('transactions', function (Blueprint $table) {
-            $table->id()->nullable(false);
-            $table->unsignedbigInteger('customer_address_id');
+            $table->id();
+            $table->foreignId('customer_address_id')->nullable()->constraint('customer_addresses', 'id');
             $table->integer('code_transaction');
             $table->date('transaction_date');
+            $table->foreignId('product_id')->nullable()->constraint('products', 'id');
+            $table->foreignId('payment_method_id')->nullable()->constraint('payment_methods', 'id');
 
-            $table->foreign('customer_address_id')->references('id')->on('customer_addresses');
+
             $table->timestamps();
         });
     }

@@ -5,6 +5,8 @@ namespace App\Http\Controllers\API;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Validator;
+use DB;
+use Auth;
 use App\Models\Customer;
 use App\Http\Resources\CustomerResource;
 
@@ -40,7 +42,7 @@ class CustomersController extends Controller
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(),[
-            'customer_name' => 'required|string|max:50',
+            'customer_name' => 'string|max:50',
         ]);
 
         if($validator->fails()){
@@ -48,7 +50,8 @@ class CustomersController extends Controller
         }
 
         $customer = Customer::create([
-            'customer_name' => $request->customer_name
+            'customer_name' => $request->customer_name,
+            'customer_address_id' => $request->customer_address_id
          ]);
         
         return response()->json(['Customer created successfully.', new CustomerResource($customer)]);
@@ -87,20 +90,35 @@ class CustomersController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, Customer $customer)
+    public function update(Request $request, $id)
     {
+
         $validator = Validator::make($request->all(),[
-            'customer_name' => 'string|max:50'
+            'customer_name' => 'required|string|max:50',
         ]);
 
         if($validator->fails()){
             return response()->json($validator->errors());       
         }
 
-        $customer->customer_name = $request->customer_name;
-        $customer->save();
-        
-        return response()->json(['Customer updated successfully.', new CustomerResource($customer)]);
+        DB::beginTransaction();
+        try {
+            $customer = Customer::findOrFail($id);
+            $customer->update([
+                'customer_name' => $request->customer_name
+            ]);
+
+       
+            DB::commit();
+
+            return response()->json(['customer updated successfully.', new CustomerResource($customer)]);
+        } catch (\Exception $e) {
+            DB::rollback();
+            return response()->json([
+                'message'   => 'DB Error',
+                'debug'     => $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
@@ -109,8 +127,10 @@ class CustomersController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
+    public function destroy(Customer $customer)
     {
-        //
+        $customer->delete();
+
+        return response()->json('customer deleted successfully');
     }
 }

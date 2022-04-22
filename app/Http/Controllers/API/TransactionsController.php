@@ -3,6 +3,10 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
+use Validator;
+use DB;
+use App\Models\Transaction;
+use App\Http\Resources\TransactionResource;
 use Illuminate\Http\Request;
 
 class TransactionsController extends Controller
@@ -14,72 +18,47 @@ class TransactionsController extends Controller
      */
     public function index()
     {
-        //
+
+        $datas = Transaction::with('products', 'payment_methods', 'customerAddress.customers')->get();
+            
+        return response()->json([
+                'status' => 'OK',
+                'results' => $datas
+            ], 200);
+        // return response()->json(['Transaction added successfully.', new TransactionResource($datas)]);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
     public function store(Request $request)
     {
-        //
-    }
+        $validator = Validator::make($request->all(),[
+            'customer_address_id' => 'required|string|max:50',
+            'code_transaction' => 'required',
+            'transaction_date' => 'required'
+        ]);
 
-    /**
-     * Display the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function show($id)
-    {
-        //
-    }
+        if($validator->fails()){
+            return response()->json($validator->errors());       
+        }
 
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function edit($id)
-    {
-        //
-    }
+        DB::beginTransaction();
+        try {
+            $transaction = new Transaction();
+            $transaction->customer_address_id = $request->customer_address_id;
+            $transaction->code_transaction    = $request->code_transaction;
+            $transaction->transaction_date    = $request->transaction_date;
+            $transaction->product_id    = $request->product_id;
+            $transaction->payment_method_id    = $request->payment_method_id;
 
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, $id)
-    {
-        //
-    }
+            $transaction->save();
+            DB::commit();
 
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy($id)
-    {
-        //
+            return response()->json(['Transaction added successfully.', new TransactionResource($transaction)]);
+        } catch (\Exception $e) {
+            DB::rollback();
+            return response()->json([
+                'message'   => 'DB Error',
+                'debug'     => $e->getMessage()
+            ], 500);
+        }
     }
 }

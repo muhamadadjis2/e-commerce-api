@@ -7,10 +7,10 @@ use Illuminate\Http\Request;
 use Validator;
 use DB;
 use Auth;
-use App\Models\Product;
-use App\Http\Resources\ProductResource;
+use App\Models\PaymentMethod;
+use App\Http\Resources\PaymentMethodResource;
 
-class ProductsController extends Controller
+class PaymentMethodsController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -19,8 +19,8 @@ class ProductsController extends Controller
      */
     public function index()
     {
-        $datas = Product::latest()->get();
-        return response()->json([ProductResource::collection($datas), 'product fetched.']);
+        $datas = PaymentMethod::latest()->get();
+        return response()->json([PaymentMethodResource::collection($datas), 'PaymentMethod fetched.']);
     }
 
     /**
@@ -43,7 +43,7 @@ class ProductsController extends Controller
     {
         $validator = Validator::make($request->all(),[
             'name' => 'required|string|max:50',
-            'price' => 'required',
+            'is_active' => 'required',
         ]);
 
         if($validator->fails()){
@@ -52,15 +52,15 @@ class ProductsController extends Controller
 
         DB::beginTransaction();
         try {
-            $product = new Product();
-            $product->name         = $request->name;
-            $product->price        = $request->price;
-            $product->transaction_id        = $request->transaction_id;
+            $paymentmethod = new PaymentMethod();
+            $paymentmethod->name       = $request->name;
+            $paymentmethod->is_active  = $request->is_active;
+            $paymentmethod->transaction_id        = $request->transaction_id;
 
-            $product->save();
+            $paymentmethod->save();
             DB::commit();
 
-            return response()->json(['product producted successfully.', new ProductResource($product)]);
+            return response()->json(['PaymentMethod added successfully.', new PaymentMethodResource($paymentmethod)]);
         } catch (\Exception $e) {
             DB::rollback();
             return response()->json([
@@ -78,20 +78,20 @@ class ProductsController extends Controller
      */
     public function show($id)
     {
-        $product = Product::find($id);
-        if (is_null($product)) {
+        $paymentmethod = PaymentMethod::find($id);
+        if (is_null($paymentmethod)) {
             return response()->json('Data not found', 404); 
         }
-        return response()->json([new productResource($product)]);
+        return response()->json([new PaymentMethodResource($paymentmethod)]);
     }
 
     /**
-     * Show the form for producting the specified resource.
+     * Show the form for PaymentMethoding the specified resource.
      *
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function product($id)
+    public function PaymentMethod($id)
     {
         //
     }
@@ -107,7 +107,7 @@ class ProductsController extends Controller
     {
         $validator = Validator::make($request->all(),[
             'name' => 'required|string|max:50',
-            'price' => 'required',
+            'is_active' => 'required',
         ]);
 
         if($validator->fails()){
@@ -116,17 +116,17 @@ class ProductsController extends Controller
 
         DB::beginTransaction();
         try {
-            $product = Product::findOrFail($id);
-            $product->update([
+            $paymentmethod = PaymentMethod::findOrFail($id);
+            $paymentmethod->update([
                 'name' => $request->name,
-                'price' => $request->price,
+                'is_active' => $request->is_active,
                 'transaction_id' => $request->transaction_id
             ]);
 
        
             DB::commit();
 
-            return response()->json(['product updated successfully.', new ProductResource($product)]);
+            return response()->json(['PaymentMethod updated successfully.', new PaymentMethodResource($paymentmethod)]);
         } catch (\Exception $e) {
             DB::rollback();
             return response()->json([
@@ -142,10 +142,10 @@ class ProductsController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy(Product $product)
+    public function destroy(PaymentMethod $PaymentMethod)
     {
-        $product->delete();
+        $PaymentMethod->delete();
 
-        return response()->json('product deleted successfully');
+        return response()->json('PaymentMethod deleted successfully');
     }
 }

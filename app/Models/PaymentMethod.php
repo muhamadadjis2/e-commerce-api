@@ -11,7 +11,12 @@ class PaymentMethod extends Model
 
     protected $fillable = [
         'name',
-        'is_active'
+        'is_active',
+        'transaction_id'
     ];
 
+    public function transaction()
+    {
+        return $this->belongsTo(Transaction::class);
+    }
 }

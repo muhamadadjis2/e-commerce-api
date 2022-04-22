@@ -14,4 +14,14 @@ class CustomerAddress extends Model
         'address'
     ];
 
+    /**
+     * Get all of the comments for the CustomerAddress
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function customers()
+    {
+        return $this->hasMany(Customer::class);
+    }
+
 }

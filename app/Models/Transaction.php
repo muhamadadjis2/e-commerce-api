@@ -12,9 +12,22 @@ class Transaction extends Model
     protected $fillable = [
         'customer_address_id',
         'code_transaction',
-        'transaction_date'
+        'transaction_date',
+        'product_id',
+        'payment_method_id'
     ];
 
+
+    public function customers()
+    {
+        return CustomerAddress::with('customers')->get();
+    }
+
+    public function customerAddress()
+    {
+        return $this->belongsTo(CustomerAddress::class);
+    }
+    
     public function products()
     {
         return $this->hasMany(Product::class);
@@ -22,6 +35,6 @@ class Transaction extends Model
 
     public function payment_methods()
     {
-        return $this->hasMany(Payment_methods::class);
+        return $this->hasMany(PaymentMethod::class);
     }
 }
