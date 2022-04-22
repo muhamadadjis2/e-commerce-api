@@ -25,7 +25,6 @@ class TransactionsController extends Controller
                 'status' => 'OK',
                 'results' => $datas
             ], 200);
-        // return response()->json(['Transaction added successfully.', new TransactionResource($datas)]);
     }
 
     public function store(Request $request)

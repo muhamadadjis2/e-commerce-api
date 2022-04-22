@@ -49,12 +49,22 @@ class CustomersController extends Controller
             return response()->json($validator->errors());       
         }
 
+        DB::beginTransaction();
+        try{
+            
         $customer = Customer::create([
             'customer_name' => $request->customer_name,
             'customer_address_id' => $request->customer_address_id
          ]);
         
         return response()->json(['Customer created successfully.', new CustomerResource($customer)]);
+        
+        } catch (\Exception $e) {
+            DB::rollback()->json([
+                'message' => 'DB Error',
+                'debug'   => $e->getMesssage()
+            ],500);
+        }
     }
 
     /**
